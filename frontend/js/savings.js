@@ -85,7 +85,10 @@ const Savings = {
           <div class="text-4xl mb-2">✅</div>
           <p class="font-outfit font-semibold text-lg" style="color:var(--color-green)">Saved today!</p>
           <p class="text-sm mt-1" id="sv-saved-amount-display" style="color:var(--text-secondary)"></p>
-          <button onclick="Savings.editToday()" class="btn-sm btn-secondary mt-3">Edit Amount</button>
+          <div class="flex items-center justify-center gap-2 mt-4">
+            <button onclick="Savings.editToday()" class="btn-sm btn-secondary">Edit</button>
+            <button onclick="Savings.deleteToday()" class="btn-sm" style="background:rgba(239,68,68,0.1);color:var(--color-red)">Delete</button>
+          </div>
         </div>
       </div>
 
@@ -238,6 +241,64 @@ const Savings = {
     if (badge) { badge.textContent = 'Editing'; badge.className = 'badge badge-gold'; }
     if (actionArea) actionArea.classList.remove('hidden');
     if (savedState) savedState.classList.add('hidden');
+  },
+
+  async deleteToday() {
+    const uid = getUID();
+    if (!uid) return;
+    
+    showConfirm({
+      title: 'Delete Saving',
+      message: "Are you sure you want to delete today's saving?",
+      confirmText: 'Delete',
+      danger: true,
+      onConfirm: async () => {
+        try {
+          const today = getTodayStr();
+          const docRef = FS.savingDoc(uid, today);
+          const snap = await docRef.get();
+          
+          if (!snap.exists) return;
+          const amount = snap.data().amount || 0;
+          
+          // Delete document
+          await docRef.delete();
+          
+          // Decrement locked
+          await FS.lockedRef(uid).set({ totalLocked: TS.increment(-amount), lastUpdated: TS.now() }, { merge: true });
+          
+          // Fix streak (simple decrement)
+          const streakSnap = await FS.streakRef(uid).get();
+          if (streakSnap.exists) {
+            const streakData = streakSnap.data();
+            if (streakData.lastSavedDate === today) {
+              await FS.streakRef(uid).set({
+                currentStreak: Math.max(0, (streakData.currentStreak || 1) - 1),
+                // We won't perfectly know the previous lastSavedDate, but resetting it to yesterday is a safe fallback
+                lastSavedDate: getDateStr(new Date(Date.now() - 86400000)) 
+              }, { merge: true });
+            }
+          }
+          
+          showToast('Saving deleted', 'success');
+          
+          // Reset UI
+          const badge = document.getElementById('sv-today-badge');
+          const actionArea = document.getElementById('sv-action-area');
+          const savedState = document.getElementById('sv-saved-state');
+          if (badge) { badge.textContent = 'Not Saved'; badge.className = 'badge badge-red'; }
+          if (actionArea) actionArea.classList.remove('hidden');
+          if (savedState) savedState.classList.add('hidden');
+          
+          this.loadMonthHeatmap(uid);
+          this.loadHistory(uid);
+          this.loadStreak(uid);
+        } catch(e) {
+          console.error(e);
+          showToast('Failed to delete saving', 'error');
+        }
+      }
+    });
   },
 
   async updateStreak(uid, today) {
