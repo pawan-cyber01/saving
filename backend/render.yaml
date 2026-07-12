@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: savelock-api
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: FRONTEND_URL
+        value: https://savelock.netlify.app
+      - key: FIREBASE_PROJECT_ID
+        value: saving-ff0d3
+      - key: FIREBASE_STORAGE_BUCKET
+        value: saving-ff0d3.firebasestorage.app
+      # Set these in Render Dashboard → Environment Variables:
+      # FIREBASE_SERVICE_ACCOUNT  (paste full JSON string)
+      # ADMIN_SECRET              (strong random string)

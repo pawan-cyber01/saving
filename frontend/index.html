@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="SaveLock - Premium personal finance app. Save daily, track expenses, manage budgets, and lock savings.">
+  <meta name="theme-color" content="#7c3aed" id="meta-theme-color">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SaveLock">
+  <title>SaveLock – Smart Personal Finance</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./assets/icons/icon-192.png">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            outfit: ['Outfit', 'sans-serif'],
+            inter: ['Inter', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="./css/app.css">
+</head>
+<body class="font-inter overflow-x-hidden">
+
+  <!-- Auth Container -->
+  <div id="auth-container" class="hidden min-h-screen">
+    <div id="auth-page-outlet"></div>
+  </div>
+
+  <!-- Main App -->
+  <div id="app-container" class="hidden">
+
+    <!-- Sidebar (Desktop) -->
+    <aside id="sidebar" class="sidebar hidden lg:flex">
+      <div class="p-5 border-b border-white/5">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl logo-gradient flex items-center justify-center shadow-lg shadow-violet-500/30 flex-shrink-0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H7l5-8v4h4l-5 8z" fill="white"/></svg>
+          </div>
+          <div>
+            <h1 class="font-outfit font-bold text-white text-lg leading-none">SaveLock</h1>
+            <p class="text-xs text-slate-400 mt-0.5">Smart Finance</p>
+          </div>
+        </div>
+      </div>
+
+      <nav class="flex-1 px-3 py-4 overflow-y-auto space-y-0.5">
+        <div class="space-y-1">
+          <p class="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Menu</p>
+          <a href="#/dashboard" class="sidebar-item" data-page="dashboard">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+            Dashboard
+          </a>
+          <a href="#/income" class="sidebar-item" data-page="income">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Income
+          </a>
+          <a href="#/savings" class="nav-item" data-page="savings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Daily Savings
+        </a>
+        <a href="#/expenses" class="nav-item" data-page="expenses">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+          Expenses
+        </a>
+        <a href="#/budget" class="nav-item" data-page="budget">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+          Budget
+        </a>
+        <a href="#/goals" class="nav-item" data-page="goals">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+          Goals
+        </a>
+        <a href="#/locked" class="nav-item" data-page="locked">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          Locked Savings
+        </a>
+        <a href="#/analytics" class="nav-item" data-page="analytics">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Analytics
+        </a>
+        <a href="#/calendar" class="nav-item" data-page="calendar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Calendar
+        </a>
+        <a href="#/reports" class="nav-item" data-page="reports">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Reports
+        </a>
+        <a href="#/admin" class="nav-item admin-only hidden" data-page="admin">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Admin
+        </a>
+      </nav>
+
+      <div class="px-3 py-4 border-t border-white/5 space-y-0.5">
+        <a href="#/profile" class="nav-item" data-page="profile">
+          <div id="sidebar-avatar" class="w-5 h-5 rounded-full logo-gradient flex items-center justify-center text-[9px] font-bold text-white">U</div>
+          Profile
+        </a>
+        <button id="sidebar-theme-toggle" class="nav-item w-full text-left">
+          <svg width="18" height="18" id="sidebar-theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <span id="sidebar-theme-label">Light Mode</span>
+        </button>
+        <button id="sidebar-logout-btn" class="nav-item w-full text-left" style="color: var(--color-red);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Logout
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="main-content" class="lg:ml-64 min-h-screen pb-24 lg:pb-8">
+      <!-- Mobile Header -->
+      <header class="lg:hidden sticky top-0 z-20 mobile-header px-4 py-3 flex items-center justify-between safe-top">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl logo-gradient flex items-center justify-center shadow-md shadow-violet-500/30">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H7l5-8v4h4l-5 8z" fill="white"/></svg>
+          </div>
+          <span class="font-outfit font-bold text-white">SaveLock</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button id="nav-install-btn" onclick="Profile.installPWA()" class="mr-1 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide bg-violet-600 text-white rounded-lg shadow-md shadow-violet-500/30">
+            Install
+          </button>
+          <button id="mobile-theme-toggle" class="icon-btn">
+            <svg width="18" height="18" id="mobile-theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </button>
+          <button id="mobile-notif-btn" class="icon-btn relative">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span id="notif-badge" class="absolute top-0.5 right-0.5 w-2 h-2 bg-violet-500 rounded-full hidden"></span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Page Outlet -->
+      <div id="page-outlet" class="px-4 pt-4 pb-4 lg:px-8 lg:pt-8"></div>
+    </main>
+
+    <!-- Bottom Navigation (Mobile) -->
+    <nav class="bottom-nav lg:hidden">
+      <div class="flex items-end justify-around px-1 pt-2 pb-safe">
+        <a href="#/dashboard" class="bottom-nav-item" data-page="dashboard">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          <span style="font-size: 10px;">Home</span>
+        </a>
+        <a href="#/income" class="bottom-nav-item" data-page="income">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span style="font-size: 10px;">Income</span>
+        </a>
+        <a href="#/expenses" class="bottom-nav-item" data-page="expenses">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/></svg>
+          <span style="font-size: 10px;">Spend</span>
+        </a>
+        <!-- FAB spacer -->
+        <div class="w-12"></div>
+        <a href="#/savings" class="bottom-nav-item" data-page="savings">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span style="font-size: 10px;">Savings</span>
+        </a>
+        <a href="#/analytics" class="bottom-nav-item" data-page="analytics">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span style="font-size: 10px;">Stats</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Floating Action Button -->
+    <button id="fab" class="fab lg:hidden" title="Add Expense" onclick="Expenses.openAddModal()">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+
+    <!-- Desktop Add Expense Button -->
+    <button id="desktop-add-btn" class="hidden lg:flex fixed bottom-8 right-8 items-center gap-2 px-5 py-3 rounded-2xl btn-primary shadow-xl shadow-violet-500/30 font-outfit font-semibold" onclick="Expenses.openAddModal()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add Expense
+    </button>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[200] space-y-2 w-80 max-w-[calc(100vw-2rem)] pointer-events-none"></div>
+
+  <!-- Add Expense Modal -->
+  <div id="expense-modal" class="modal-backdrop hidden" onclick="if(event.target===this)closeModal('expense-modal')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">Add Expense</h3>
+        <button class="modal-close-btn" onclick="closeModal('expense-modal')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="expense-modal-body" class="p-5"></div>
+    </div>
+  </div>
+
+  <!-- UPI Modal -->
+  <div id="upi-modal" class="modal-backdrop hidden" onclick="if(event.target===this)closeModal('upi-modal')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title">💸 UPI Payment</h3>
+        <button class="modal-close-btn" onclick="closeModal('upi-modal')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="upi-modal-body" class="p-5"></div>
+    </div>
+  </div>
+
+  <!-- Goal Modal -->
+  <div id="goal-modal" class="modal-backdrop hidden" onclick="if(event.target===this)closeModal('goal-modal')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="goal-modal-title">New Goal</h3>
+        <button class="modal-close-btn" onclick="closeModal('goal-modal')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="goal-modal-body" class="p-5"></div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div id="confirm-modal" class="modal-backdrop hidden" onclick="if(event.target===this)closeModal('confirm-modal')">
+    <div class="modal-card max-w-sm mx-auto">
+      <div id="confirm-modal-body" class="p-6"></div>
+    </div>
+  </div>
+
+  <!-- Income Modal -->
+  <div id="income-modal" class="modal-backdrop hidden" onclick="if(event.target===this)closeModal('income-modal')">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 class="modal-title" id="income-modal-title">Income</h3>
+        <button class="modal-close-btn" onclick="closeModal('income-modal')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="income-modal-body" class="p-5"></div>
+    </div>
+  </div>
+
+  <!-- Firebase Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-analytics-compat.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- QRCode.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- SheetJS -->
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+  <!-- App Modules (order matters) -->
+  <script src="./js/firebase.js"></script>
+  <script src="./js/utils.js"></script>
+  <script src="./js/theme.js"></script>
+  <script src="./js/notifications.js"></script>
+  <script src="./js/upi.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/dashboard.js"></script>
+  <script src="./js/savings.js"></script>
+  <script src="./js/expenses.js"></script>
+  <script src="./js/income.js"></script>
+  <script src="./js/budget.js"></script>
+  <script src="./js/goals.js"></script>
+  <script src="./js/locked.js"></script>
+  <script src="./js/analytics.js"></script>
+  <script src="./js/calendar.js"></script>
+  <script src="./js/reports.js"></script>
+  <script src="./js/profile.js"></script>
+  <script src="./js/admin.js"></script>
+  <script src="./js/app.js"></script>
+</body>
+</html>
