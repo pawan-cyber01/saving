@@ -258,14 +258,14 @@ const Savings = {
         lastSavedDate: today,
         updatedAt: TS.now(),
       }, { merge: true });
-    } catch(e) {}
+    } catch(e) { console.error('updateStreak:', e); }
   },
 
   async addToLocked(uid, amount) {
     try {
       const ref = FS.lockedRef(uid);
       await ref.set({ totalLocked: TS.increment(amount), lastUpdated: TS.now() }, { merge: true });
-    } catch(e) {}
+    } catch(e) { console.error('addToLocked:', e); }
   },
 
   async loadMonthHeatmap(uid) {
@@ -281,8 +281,8 @@ const Savings = {
 
     try {
       const snap = await FS.savingsCol(uid)
-        .where(firebase.firestore.FieldPath.documentId(), '>=', startOfMonth)
-        .where(firebase.firestore.FieldPath.documentId(), '<=', today)
+        .where('date', '>=', startOfMonth)
+        .where('date', '<=', today)
         .get();
 
       const savedMap = {};
@@ -335,7 +335,7 @@ const Savings = {
       if (elMissed) elMissed.textContent = missedDays;
       if (elTotal) elTotal.textContent = formatCurrency(totalSaved);
       if (elMonthCount) elMonthCount.textContent = `${savedDays} days saved`;
-    } catch(e) {}
+    } catch(e) { console.error('loadMonthHeatmap:', e); }
   },
 
   async loadHistory(uid) {
@@ -343,7 +343,7 @@ const Savings = {
     if (!container) return;
     try {
       const snap = await FS.savingsCol(uid)
-        .orderBy(firebase.firestore.FieldPath.documentId(), 'desc')
+        .orderBy('date', 'desc')
         .limit(10)
         .get();
 
@@ -367,7 +367,10 @@ const Savings = {
           <p class="font-outfit font-semibold" style="color:var(--color-green)">+${formatCurrency(data.amount)}</p>
         </div>`;
       }).join('');
-    } catch(e) {}
+    } catch(e) { 
+      console.error('loadHistory:', e); 
+      container.innerHTML = '<p class="text-sm text-red-500 py-4 text-center">Failed to load history</p>';
+    }
   },
 
   async editDefaultAmount() {

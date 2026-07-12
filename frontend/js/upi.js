@@ -174,10 +174,14 @@ const UPI = {
   },
 
   async markPaid() {
+    if (this._isSaving) return;
+    
     const uid = getUID();
     if (!uid) return;
     const amount = this._amount;
     if (!amount) { showToast('Generate a UPI link first', 'warning'); return; }
+
+    this._isSaving = true;
 
     const btn = document.getElementById('upi-mark-paid-btn');
     setLoading(btn, true);
@@ -200,7 +204,11 @@ const UPI = {
       closeModal('upi-modal');
     } catch(e) {
       showToast('Failed to record payment', 'error');
-    } finally { if (btn) setLoading(btn, false); }
+      console.error(e);
+    } finally { 
+      if (btn) setLoading(btn, false);
+      this._isSaving = false;
+    }
   },
 
   async saveUpiDetails(upiId, name) {
@@ -242,7 +250,7 @@ const UPI = {
       <div class="space-y-4 pb-4">
         <p class="text-sm text-center" style="color:var(--text-secondary)">Scan QR code to pay <b>₹${amount}</b></p>
         <div id="upi-qrcode" class="flex justify-center p-4 rounded-xl" style="background:white"></div>
-        <button onclick="UPI.markPaid()" class="btn-primary w-full justify-center py-3 text-lg mt-2">
+        <button id="upi-mark-paid-btn" onclick="UPI.markPaid()" class="btn-primary w-full justify-center py-3 text-lg mt-2">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           Mark as Saved
         </button>
