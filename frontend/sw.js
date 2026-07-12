@@ -100,36 +100,28 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Cache-first for local static assets
+  // Network-first for local static assets to ensure latest updates
   event.respondWith(
-    caches.match(request).then(cached => {
-      if (cached) {
-        // Revalidate in background
-        fetch(request).then(response => {
-          if (response.ok) {
-            caches.open(CACHE_NAME).then(cache => cache.put(request, response));
-          }
-        }).catch(() => {});
-        return cached;
-      }
-
-      return fetch(request)
-        .then(response => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
-          }
-          return response;
-        })
-        .catch(() => {
-          // Return offline page for navigation requests
+    fetch(request)
+      .then(response => {
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+        }
+        return response;
+      })
+      .catch(() => {
+        return caches.match(request).then(cached => {
+          if (cached) return cached;
+          
+          // Return offline page for navigation requests if network fails and no cache
           if (request.mode === 'navigate') {
             return new Response(OFFLINE_HTML, {
               headers: { 'Content-Type': 'text/html' },
             });
           }
         });
-    })
+      })
   );
 });
 

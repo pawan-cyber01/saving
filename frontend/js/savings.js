@@ -267,15 +267,14 @@ const Savings = {
           // Decrement locked
           await FS.lockedRef(uid).set({ totalLocked: TS.increment(-amount), lastUpdated: TS.now() }, { merge: true });
           
-          // Fix streak (simple decrement)
+          // Fix streak (fully reset)
           const streakSnap = await FS.streakRef(uid).get();
           if (streakSnap.exists) {
             const streakData = streakSnap.data();
             if (streakData.lastSavedDate === today) {
               await FS.streakRef(uid).set({
-                currentStreak: Math.max(0, (streakData.currentStreak || 1) - 1),
-                // We won't perfectly know the previous lastSavedDate, but resetting it to yesterday is a safe fallback
-                lastSavedDate: getDateStr(new Date(Date.now() - 86400000)) 
+                currentStreak: 0,
+                lastSavedDate: null
               }, { merge: true });
             }
           }

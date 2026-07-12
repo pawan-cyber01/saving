@@ -287,12 +287,59 @@ const UPI = {
     }
 
     const note = 'Daily Savings';
-    const link = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
-    
-    // Open the popup behind the scenes so "Mark as Saved" is ready when they return
-    this.quickShowQR();
-    
-    // Attempt to open intent
-    window.location.href = link;
-  },
+    const encodedName = encodeURIComponent(name);
+    const encodedNote = encodeURIComponent(note);
+
+    this._amount = amount;
+    this._upiId = upiId;
+
+    const baseLink = `pa=${upiId}&pn=${encodedName}&am=${amount}&cu=INR&tn=${encodedNote}`;
+    const anyLink = `upi://pay?${baseLink}`;
+    const gpayLink = `tez://upi/pay?${baseLink}`;
+    const phonepeLink = `phonepe://pay?${baseLink}`;
+    const paytmLink = `paytmmp://pay?${baseLink}`;
+
+    const body = document.getElementById('upi-modal-body');
+    if (!body) return;
+
+    body.innerHTML = `
+      <div class="space-y-4 pb-4">
+        <p class="text-sm text-center mb-4" style="color:var(--text-secondary)">Choose an app to pay <b>₹${amount}</b></p>
+        
+        <div class="grid grid-cols-2 gap-3">
+          <a href="${gpayLink}" class="btn-secondary justify-center py-4 flex flex-col gap-2 h-auto" style="text-decoration:none">
+            <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center p-2 shadow-sm">
+              <svg viewBox="0 0 48 48" width="24" height="24"><path fill="#4285F4" d="M33.6 22.8H24v5.3h5.6c-.3 1.8-1.5 3.3-3.1 4.3v3.5h5C34.4 33.1 36 29 36 24.3c0-.5 0-1-.1-1.5z"/><path fill="#34A853" d="M24 36c3.4 0 6.2-1.1 8.3-3.1l-5-3.5c-1.1.8-2.6 1.2-4.3 1.2-3.3 0-6.1-2.2-7.1-5.1h-5.2v3.6C12.8 33.2 18 36 24 36z"/><path fill="#FBBC05" d="M16.9 25.5c-.2-.8-.4-1.6-.4-2.5s.1-1.7.4-2.5v-3.6h-5.2c-1.1 2.1-1.7 4.5-1.7 7.1s.6 5 1.7 7.1l5.2-3.6z"/><path fill="#EA4335" d="M24 16.4c1.8 0 3.5.6 4.8 1.9l3.6-3.6C30.2 12.6 27.4 11.5 24 11.5 18 11.5 12.8 14.3 10 18.9l5.2 3.6c1-2.9 3.8-5.1 7.1-5.1z"/></svg>
+            </div>
+            <span class="text-xs font-semibold">GPay</span>
+          </a>
+          <a href="${phonepeLink}" class="btn-secondary justify-center py-4 flex flex-col gap-2 h-auto" style="text-decoration:none">
+            <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center p-1 shadow-sm">
+              <span class="font-bold text-[#5e239d] text-lg">पे</span>
+            </div>
+            <span class="text-xs font-semibold">PhonePe</span>
+          </a>
+          <a href="${paytmLink}" class="btn-secondary justify-center py-4 flex flex-col gap-2 h-auto" style="text-decoration:none">
+            <div class="w-10 h-10 rounded-full bg-[#002970] flex items-center justify-center shadow-sm">
+              <span class="font-bold text-[#00baf2] text-sm tracking-tighter">Paytm</span>
+            </div>
+            <span class="text-xs font-semibold">Paytm</span>
+          </a>
+          <a href="${anyLink}" class="btn-secondary justify-center py-4 flex flex-col gap-2 h-auto" style="text-decoration:none">
+            <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center p-2 shadow-sm text-gray-500">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            </div>
+            <span class="text-xs font-semibold">Other Apps</span>
+          </a>
+        </div>
+
+        <button id="upi-mark-paid-btn" onclick="UPI.markPaid()" class="btn-primary w-full justify-center py-3 text-lg mt-4">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Mark as Saved
+        </button>
+      </div>
+    `;
+
+    openModal('upi-modal');
+  }
 };
