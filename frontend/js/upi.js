@@ -126,9 +126,7 @@ const UPI = {
     if (!name) { showToast('Enter receiver name', 'warning'); return; }
     if (!amount || amount <= 0) { showToast('Enter a valid amount', 'warning'); return; }
 
-    const encodedName = encodeURIComponent(name);
-    const encodedNote = encodeURIComponent(note);
-    const link = `upi://pay?pa=${upiId}&pn=${encodedName}&am=${amount.toFixed(2)}&cu=INR&tn=${encodedNote}`;
+    const link = `upi://pay?pa=${upiId}&am=${amount.toFixed(2)}`;
 
     this._link = link;
     this._amount = amount;
@@ -286,14 +284,10 @@ const UPI = {
       return;
     }
 
-    const note = 'Daily Savings';
-    const encodedName = encodeURIComponent(name);
-    const encodedNote = encodeURIComponent(note);
-
     this._amount = amount;
     this._upiId = upiId;
 
-    const baseLink = `pa=${upiId}&pn=${encodedName}&am=${amount.toFixed(2)}&cu=INR&tn=${encodedNote}`;
+    const baseLink = `pa=${upiId}&am=${amount.toFixed(2)}`;
     const anyLink = `upi://pay?${baseLink}`;
     const gpayLink = `tez://upi/pay?${baseLink}`;
     const phonepeLink = `phonepe://pay?${baseLink}`;
