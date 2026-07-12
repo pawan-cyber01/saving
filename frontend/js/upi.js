@@ -128,7 +128,7 @@ const UPI = {
 
     const encodedName = encodeURIComponent(name);
     const encodedNote = encodeURIComponent(note);
-    const link = `upi://pay?pa=${upiId}&pn=${encodedName}&am=${amount}&cu=INR&tn=${encodedNote}`;
+    const link = `upi://pay?pa=${upiId}&pn=${encodedName}&am=${amount.toFixed(2)}&cu=INR&tn=${encodedNote}`;
 
     this._link = link;
     this._amount = amount;
@@ -293,7 +293,7 @@ const UPI = {
     this._amount = amount;
     this._upiId = upiId;
 
-    const baseLink = `pa=${upiId}&pn=${encodedName}&am=${amount}&cu=INR&tn=${encodedNote}`;
+    const baseLink = `pa=${upiId}&pn=${encodedName}&am=${amount.toFixed(2)}&cu=INR&tn=${encodedNote}`;
     const anyLink = `upi://pay?${baseLink}`;
     const gpayLink = `tez://upi/pay?${baseLink}`;
     const phonepeLink = `phonepe://pay?${baseLink}`;
