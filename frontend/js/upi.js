@@ -236,22 +236,65 @@ const UPI = {
       return;
     }
 
-    const note = 'Daily Savings';
-    const link = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(name)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
+    const baseLink = `pa=${upiId}&am=${amount.toFixed(2)}`;
+    const anyLink  = `upi://pay?${baseLink}`;
+    const gpayLink = `tez://upi/pay?${baseLink}`;
+    const phonepeLink = `phonepe://pay?${baseLink}`;
+    const paytmLink   = `paytmmp://pay?${baseLink}`;
+
     this._amount = amount;
-    this._upiId = upiId;
+    this._upiId  = upiId;
 
     const body = document.getElementById('upi-modal-body');
     if (!body) return;
 
     body.innerHTML = `
-      <div class="space-y-4 pb-4">
-        <p class="text-sm text-center" style="color:var(--text-secondary)">Scan QR code to pay <b>₹${amount}</b></p>
-        <div id="upi-qrcode" class="flex justify-center p-4 rounded-xl" style="background:white"></div>
-        <button id="upi-mark-paid-btn" onclick="UPI.markPaid()" class="btn-primary w-full justify-center py-3 text-lg mt-2">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          Mark as Saved
-        </button>
+      <div class="flex flex-col items-center gap-4 pb-2">
+
+        <!-- QR Code -->
+        <p class="text-sm text-center" style="color:var(--text-secondary)">Scan to pay <b>₹${amount.toFixed(2)}</b> · <span style="color:var(--color-violet)">${upiId}</span></p>
+        <div id="upi-qrcode" class="flex justify-center p-4 rounded-2xl shadow-lg" style="background:white"></div>
+
+        <!-- Open UPI App row -->
+        <div class="w-full">
+          <p class="text-xs text-center mb-2" style="color:var(--text-secondary)">Or open directly in:</p>
+          <div class="grid grid-cols-4 gap-2">
+            <a href="${gpayLink}" class="flex flex-col items-center gap-1 p-2 rounded-xl transition-all active:scale-95" style="background:var(--glass-bg)">
+              <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm p-1">
+                <svg viewBox="0 0 48 48" width="22" height="22"><path fill="#4285F4" d="M33.6 22.8H24v5.3h5.6c-.3 1.8-1.5 3.3-3.1 4.3v3.5h5C34.4 33.1 36 29 36 24.3c0-.5 0-1-.1-1.5z"/><path fill="#34A853" d="M24 36c3.4 0 6.2-1.1 8.3-3.1l-5-3.5c-1.1.8-2.6 1.2-4.3 1.2-3.3 0-6.1-2.2-7.1-5.1h-5.2v3.6C12.8 33.2 18 36 24 36z"/><path fill="#FBBC05" d="M16.9 25.5c-.2-.8-.4-1.6-.4-2.5s.1-1.7.4-2.5v-3.6h-5.2c-1.1 2.1-1.7 4.5-1.7 7.1s.6 5 1.7 7.1l5.2-3.6z"/><path fill="#EA4335" d="M24 16.4c1.8 0 3.5.6 4.8 1.9l3.6-3.6C30.2 12.6 27.4 11.5 24 11.5 18 11.5 12.8 14.3 10 18.9l5.2 3.6c1-2.9 3.8-5.1 7.1-5.1z"/></svg>
+              </div>
+              <span class="text-[10px] font-semibold" style="color:var(--text-primary)">GPay</span>
+            </a>
+            <a href="${phonepeLink}" class="flex flex-col items-center gap-1 p-2 rounded-xl transition-all active:scale-95" style="background:var(--glass-bg)">
+              <div class="w-9 h-9 rounded-full bg-[#5e239d] flex items-center justify-center shadow-sm">
+                <span class="font-bold text-white text-base">Pe</span>
+              </div>
+              <span class="text-[10px] font-semibold" style="color:var(--text-primary)">PhonePe</span>
+            </a>
+            <a href="${paytmLink}" class="flex flex-col items-center gap-1 p-2 rounded-xl transition-all active:scale-95" style="background:var(--glass-bg)">
+              <div class="w-9 h-9 rounded-full bg-[#002970] flex items-center justify-center shadow-sm">
+                <span class="font-bold text-[#00baf2] text-[10px] tracking-tighter">Paytm</span>
+              </div>
+              <span class="text-[10px] font-semibold" style="color:var(--text-primary)">Paytm</span>
+            </a>
+            <a href="${anyLink}" class="flex flex-col items-center gap-1 p-2 rounded-xl transition-all active:scale-95" style="background:var(--glass-bg)">
+              <div class="w-9 h-9 rounded-full flex items-center justify-center shadow-sm" style="background:var(--color-border)">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-secondary)"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20"/><path d="M2 12h20"/></svg>
+              </div>
+              <span class="text-[10px] font-semibold" style="color:var(--text-primary)">Other</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Done + Cancel -->
+        <div class="w-full flex flex-col gap-2">
+          <button id="upi-mark-paid-btn" onclick="UPI.markPaid()" class="btn-primary w-full justify-center py-3 text-base">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Done — Mark as Saved
+          </button>
+          <button onclick="closeModal('upi-modal')" class="text-xs py-1.5" style="color:var(--text-secondary);background:none;border:none;cursor:pointer;width:100%">Cancel</button>
+        </div>
+
       </div>
     `;
 
@@ -261,13 +304,14 @@ const UPI = {
       if (qrDiv) {
         qrDiv.innerHTML = '';
         if (window.QRCode) {
-          new QRCode(qrDiv, { text: link, width: 220, height: 220, colorDark: '#000', colorLight: '#fff' });
+          new QRCode(qrDiv, { text: anyLink, width: 200, height: 200, colorDark: '#000', colorLight: '#fff' });
         } else {
-          qrDiv.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(link)}" alt="QR Code" class="rounded-xl">`;
+          qrDiv.innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(anyLink)}" alt="QR Code" class="rounded-xl">`;
         }
       }
     }, 100);
   },
+
 
   quickPay() {
     const upiId = window.SAVED_UPI_ID;
