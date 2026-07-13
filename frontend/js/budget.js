@@ -9,9 +9,53 @@ const Budget = {
         <p class="page-subtitle">Set your limits and track utilization</p>
       </div>
 
+      <!-- Pocket Money Smart Limit -->
+      <div class="card" style="background:linear-gradient(135deg,rgba(124,58,237,0.12),rgba(20,184,166,0.08));border:1px solid rgba(124,58,237,0.25)">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-xl">💵</span>
+          <h2 class="section-title mb-0">Monthly Pocket Money</h2>
+        </div>
+        <p class="text-xs mb-4" style="color:var(--text-secondary)">Set your monthly spending allowance. The app auto-calculates your daily limit and adjusts it if you overspend on any day.</p>
+        <div class="form-group mb-3">
+          <label class="form-label">Monthly Pocket Money (₹)</label>
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-outfit font-bold" style="color:var(--color-gold)">₹</span>
+            <input type="number" id="bd-pocket-money" class="form-input pl-7" placeholder="7500" min="0">
+          </div>
+        </div>
+        <button onclick="Budget.savePocketMoney()" id="bd-pocket-save-btn" class="btn-primary w-full justify-center mb-4">
+          Save Pocket Money
+        </button>
+
+        <!-- Smart Daily Limit Display -->
+        <div id="bd-smart-limit-card" class="hidden p-4 rounded-2xl" style="background:var(--glass-bg);border:1px solid var(--color-border)">
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <p class="text-xs" style="color:var(--text-secondary)">Base Daily Limit</p>
+              <p class="font-outfit font-bold text-xl" id="bd-base-daily" style="color:var(--color-green)">₹0</p>
+            </div>
+            <div class="text-right">
+              <p class="text-xs" style="color:var(--text-secondary)">Today's Adjusted Limit</p>
+              <p class="font-outfit font-bold text-xl" id="bd-adj-daily" style="color:var(--color-teal)">₹0</p>
+            </div>
+          </div>
+          <div class="progress-bar-track mb-2" style="height:8px">
+            <div id="bd-pocket-progress" class="progress-bar-fill" style="width:0%;background:linear-gradient(90deg,#22c55e,#7c3aed)"></div>
+          </div>
+          <div class="flex justify-between text-xs mb-2" style="color:var(--text-secondary)">
+            <span id="bd-pocket-spent-label">₹0 spent today</span>
+            <span id="bd-pocket-days-label">Day 1 of 30</span>
+          </div>
+          <div id="bd-overspend-alert" class="hidden p-3 rounded-xl text-sm" style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);color:var(--color-red)">
+          </div>
+          <div id="bd-normal-alert" class="hidden p-3 rounded-xl text-sm" style="background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);color:var(--color-green)">
+          </div>
+        </div>
+      </div>
+
       <!-- Budget Setup -->
       <div class="card">
-        <h2 class="section-title">Budget Settings</h2>
+        <h2 class="section-title">Other Budget Settings</h2>
         <div class="space-y-4">
           <div class="form-group">
             <label class="form-label">Monthly Income (₹)</label>
@@ -39,6 +83,7 @@ const Budget = {
           </button>
         </div>
       </div>
+
 
       <!-- Budget Stats -->
       <div class="grid grid-cols-2 gap-3">
@@ -125,6 +170,7 @@ const Budget = {
     if (!uid) return;
     await this.load(uid);
     await this.loadStats(uid);
+    await this.loadSmartLimit(uid);
   },
 
   async load(uid) {
@@ -135,13 +181,100 @@ const Budget = {
       setVal('bd-income', data.monthlyIncome);
       setVal('bd-monthly', data.monthlyBudget);
       setVal('bd-daily', data.dailyBudget);
+      setVal('bd-pocket-money', data.monthlyPocketMoney);
 
       this._income = data.monthlyIncome || 0;
       this._monthly = data.monthlyBudget || 0;
       this._daily = data.dailyBudget || 0;
+      this._pocketMoney = data.monthlyPocketMoney || 0;
 
       this.updateStatDisplay();
     } catch(e) {}
+  },
+
+  async savePocketMoney() {
+    const uid = getUID();
+    if (!uid) return;
+    const amount = parseAmount(document.getElementById('bd-pocket-money')?.value);
+    if (!amount || amount <= 0) { showToast('Enter a valid pocket money amount', 'warning'); return; }
+    const btn = document.getElementById('bd-pocket-save-btn');
+    setLoading(btn, true);
+    try {
+      await FS.budgetRef(uid).set({ monthlyPocketMoney: amount }, { merge: true });
+      this._pocketMoney = amount;
+      showToast('Pocket money saved! 💵', 'success');
+      await this.loadSmartLimit(uid);
+    } catch(e) {
+      showToast('Failed to save', 'error');
+    } finally { setLoading(btn, false); }
+  },
+
+  async loadSmartLimit(uid) {
+    const pocketMoney = this._pocketMoney;
+    const card = document.getElementById('bd-smart-limit-card');
+    if (!pocketMoney || !card) return;
+    card.classList.remove('hidden');
+
+    const now = new Date();
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const dayOfMonth = now.getDate();
+    const today = getTodayStr();
+    const startOfMonth = today.substring(0, 7) + '-01';
+    const remainingDays = daysInMonth - dayOfMonth + 1;
+    const baseDaily = pocketMoney / daysInMonth;
+
+    try {
+      // Total spent this month
+      const expSnap = await FS.expensesCol(uid)
+        .where('date', '>=', startOfMonth)
+        .where('date', '<=', today)
+        .get();
+      let totalSpentMonth = 0;
+      let todaySpent = 0;
+      expSnap.forEach(d => {
+        const amt = d.data().amount || 0;
+        totalSpentMonth += amt;
+        if (d.data().date === today) todaySpent += amt;
+      });
+
+      const remainingBudget = pocketMoney - totalSpentMonth;
+      const adjDaily = remainingDays > 0 ? remainingBudget / remainingDays : 0;
+      const todayPct = Math.min(100, (todaySpent / Math.max(1, baseDaily)) * 100);
+
+      const set = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
+      set('bd-base-daily', formatCurrency(baseDaily));
+      set('bd-adj-daily', formatCurrency(Math.max(0, adjDaily)));
+      set('bd-pocket-spent-label', `${formatCurrency(todaySpent)} spent today`);
+      set('bd-pocket-days-label', `Day ${dayOfMonth} of ${daysInMonth}`);
+
+      const progress = document.getElementById('bd-pocket-progress');
+      if (progress) progress.style.width = todayPct + '%';
+
+      const overAlert = document.getElementById('bd-overspend-alert');
+      const normalAlert = document.getElementById('bd-normal-alert');
+
+      if (todaySpent > baseDaily && adjDaily > 0) {
+        const over = todaySpent - baseDaily;
+        const deductPerDay = over / Math.max(1, remainingDays - 1);
+        if (overAlert) {
+          overAlert.innerHTML = `⚠️ You overspent by <b>${formatCurrency(over)}</b> today. ₹${deductPerDay.toFixed(0)} has been spread across the remaining <b>${remainingDays - 1} days</b>. New daily limit: <b>${formatCurrency(Math.max(0, adjDaily))}</b>`;
+          overAlert.classList.remove('hidden');
+        }
+        if (normalAlert) normalAlert.classList.add('hidden');
+      } else if (remainingBudget <= 0) {
+        if (overAlert) {
+          overAlert.innerHTML = `🚨 You've spent your entire pocket money for the month!`;
+          overAlert.classList.remove('hidden');
+        }
+        if (normalAlert) normalAlert.classList.add('hidden');
+      } else {
+        if (normalAlert) {
+          normalAlert.innerHTML = `✅ On track! ${formatCurrency(remainingBudget)} remaining for ${remainingDays} days.`;
+          normalAlert.classList.remove('hidden');
+        }
+        if (overAlert) overAlert.classList.add('hidden');
+      }
+    } catch(e) { console.error('loadSmartLimit:', e); }
   },
 
   async save() {

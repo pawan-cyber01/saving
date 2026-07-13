@@ -36,10 +36,13 @@
     }
   </script>
 
-  <!-- App CSS -->
-  <link rel="stylesheet" href="./css/app.css">
+  <!-- Space CSS -->
+  <link rel="stylesheet" href="./css/space.css">
 </head>
 <body class="font-inter overflow-x-hidden">
+
+  <!-- Space Background Canvas -->
+  <canvas id="space-canvas" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;"></canvas>
 
   <!-- Auth Container -->
   <div id="auth-container" class="hidden min-h-screen">
@@ -163,9 +166,9 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
           <span style="font-size: 10px;">Home</span>
         </a>
-        <a href="#/income" class="bottom-nav-item" data-page="income">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          <span style="font-size: 10px;">Income</span>
+        <a href="#/savings" class="bottom-nav-item" data-page="savings">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <span style="font-size: 10px;">Save</span>
         </a>
         <a href="#/expenses" class="bottom-nav-item" data-page="expenses">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/></svg>
@@ -173,9 +176,9 @@
         </a>
         <!-- FAB spacer -->
         <div class="w-12"></div>
-        <a href="#/savings" class="bottom-nav-item" data-page="savings">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          <span style="font-size: 10px;">Savings</span>
+        <a href="#/budget" class="bottom-nav-item" data-page="budget">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          <span style="font-size: 10px;">Budget</span>
         </a>
         <a href="#/analytics" class="bottom-nav-item" data-page="analytics">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
@@ -297,5 +300,6 @@
   <script src="./js/profile.js"></script>
   <script src="./js/admin.js"></script>
   <script src="./js/app.js"></script>
+  <script src="./js/space-bg.js"></script>
 </body>
 </html>

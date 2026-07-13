@@ -51,19 +51,21 @@ const Profile = {
       <div class="card">
         <h2 class="section-title">Daily Reminder</h2>
         <div class="space-y-4">
-          <p class="text-sm" style="color:var(--text-secondary)">Get a notification every day to remind you to save. It will only buzz if you haven't saved that day.</p>
+          <p class="text-sm" style="color:var(--text-secondary)">Get reminded 3 times a day — only buzzes if you haven't saved yet. Adjust times below.</p>
 
-          <div class="p-4 rounded-2xl" style="background:var(--glass-bg);border:1px solid var(--color-border)">
-            <label class="form-label mb-2">Remind me at</label>
-            <div class="flex items-center gap-3">
-              <input type="time" id="pr-reminder-time" class="form-input text-center text-lg font-outfit font-bold" style="max-width:140px;color:var(--color-violet)" value="20:00">
-              <button onclick="Profile.saveReminderTime()" class="btn-primary py-2.5 px-4 text-sm">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                Set Reminder
-              </button>
-            </div>
-            <p class="text-xs mt-2" id="pr-reminder-status" style="color:var(--text-secondary)">Notifications are off. Click Set Reminder to enable.</p>
+          <div class="p-4 rounded-2xl space-y-3" style="background:var(--glass-bg);border:1px solid var(--color-border)">
+            ${[['🌅 Morning', 'pr-time-1', '08:00'], ['☀️ Afternoon', 'pr-time-2', '14:00'], ['🌙 Evening', 'pr-time-3', '20:00']].map(([label, id, def]) => `
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-sm font-medium" style="min-width:100px">${label}</span>
+                <input type="time" id="${id}" class="form-input text-center font-outfit font-bold" style="max-width:130px;color:var(--color-violet)" value="${def}">
+              </div>
+            `).join('<div class="divider" style="margin:4px 0"></div>')}
           </div>
+          <button onclick="Profile.saveReminderTimes()" class="btn-primary w-full justify-center text-sm py-3">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Set 3 Daily Reminders
+          </button>
+          <p class="text-xs text-center" id="pr-reminder-status" style="color:var(--text-secondary)">Notifications off. Tap above to enable.</p>
         </div>
       </div>
 
@@ -169,31 +171,31 @@ const Profile = {
         memberEl.textContent = `Since ${d.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}`;
       }
 
-      // Reminder time
-      const savedH = localStorage.getItem('reminderHour') ?? '20';
-      const savedM = localStorage.getItem('reminderMinute') ?? '0';
-      const timeEl = document.getElementById('pr-reminder-time');
-      if (timeEl) timeEl.value = `${String(savedH).padStart(2,'0')}:${String(savedM).padStart(2,'0')}`;
+      // Reminder times
+      const savedTimes = Notifications.getSavedTimes();
+      const timeIds = ['pr-time-1', 'pr-time-2', 'pr-time-3'];
+      savedTimes.forEach((t, i) => {
+        const el = document.getElementById(timeIds[i]);
+        if (el) el.value = `${String(t.hour).padStart(2,'0')}:${String(t.minute).padStart(2,'0')}`;
+      });
       const statusEl = document.getElementById('pr-reminder-status');
-      if (statusEl) {
-        if (Notification?.permission === 'granted') {
-          statusEl.textContent = `✅ Reminders on — daily at ${String(savedH).padStart(2,'0')}:${String(savedM).padStart(2,'0')}`;
-          statusEl.style.color = 'var(--color-green)';
-        } else {
-          statusEl.textContent = 'Notifications are off. Click Set Reminder to enable.';
-        }
+      if (statusEl && Notification?.permission === 'granted') {
+        statusEl.textContent = `✅ 3 daily reminders active`;
+        statusEl.style.color = 'var(--color-green)';
       }
     } catch(e) {}
   },
 
-  async saveReminderTime() {
-    const timeEl = document.getElementById('pr-reminder-time');
-    if (!timeEl || !timeEl.value) return;
-    const [hour, minute] = timeEl.value.split(':').map(Number);
-    await Notifications.setReminderTime(hour, minute);
+  async saveReminderTimes() {
+    const t1 = document.getElementById('pr-time-1')?.value || '08:00';
+    const t2 = document.getElementById('pr-time-2')?.value || '14:00';
+    const t3 = document.getElementById('pr-time-3')?.value || '20:00';
+    const parse = v => ({ hour: parseInt(v.split(':')[0]), minute: parseInt(v.split(':')[1]), label: '' });
+    const times = [parse(t1), parse(t2), parse(t3)];
+    await Notifications.setReminderTimes(times);
     const statusEl = document.getElementById('pr-reminder-status');
     if (statusEl && Notification?.permission === 'granted') {
-      statusEl.textContent = `✅ Reminders on — daily at ${timeEl.value}`;
+      statusEl.textContent = `✅ 3 daily reminders active (${t1}, ${t2}, ${t3})`;
       statusEl.style.color = 'var(--color-green)';
     }
   },

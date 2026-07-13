@@ -236,11 +236,12 @@ const UPI = {
       return;
     }
 
-    const baseLink = `pa=${upiId}&am=${amount.toFixed(2)}`;
-    const anyLink  = `upi://pay?${baseLink}`;
-    const gpayLink = `tez://upi/pay?${baseLink}`;
-    const phonepeLink = `phonepe://pay?${baseLink}`;
-    const paytmLink   = `paytmmp://pay?${baseLink}`;
+    // Use Android intents to just open the app (no payment payload) 
+    // so the user can scan the QR screenshot from their gallery.
+    const anyLink  = `upi://`; 
+    const gpayLink = `intent://#Intent;package=com.google.android.apps.nbu.paisa.user;end;`;
+    const phonepeLink = `intent://#Intent;package=com.phonepe.app;end;`;
+    const paytmLink   = `intent://#Intent;package=net.one97.paytm;end;`;
 
     this._amount = amount;
     this._upiId  = upiId;

@@ -122,14 +122,14 @@ const App = {
     // Request notification permission
     Notifications.requestPermission();
 
-    // Route to current hash or dashboard
+    // Route to current hash or savings (default)
     const hash = window.location.hash;
-    const path = hash ? hash.slice(1) : '/dashboard';
+    const path = hash ? hash.slice(1) : '/savings';
     this.navigate(path);
 
     // Set up hash change listener
     window.onhashchange = () => {
-      const p = window.location.hash.slice(1) || '/dashboard';
+      const p = window.location.hash.slice(1) || '/savings';
       if (p !== this.currentPage) this.navigate(p);
     };
 

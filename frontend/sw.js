@@ -151,34 +151,37 @@ self.addEventListener('notificationclick', event => {
   );
 });
 
-// ─── Daily Reminder Alarm ────────────────────────────────────────────────────
-let reminderTimer = null;
+// ─── Daily Reminder Alarms (up to 3 per day) ─────────────────────────────────
+const reminderTimers = [];
 
-function scheduleNextReminder(hour, minute) {
-  if (reminderTimer) clearTimeout(reminderTimer);
+function clearAllTimers() {
+  reminderTimers.forEach(t => clearTimeout(t));
+  reminderTimers.length = 0;
+}
 
+function getTimeMessage(hour) {
+  if (hour < 12) return "Good morning! 🌅 Don't forget to save today!";
+  if (hour < 17) return "Afternoon check-in! 💰 Have you saved today?";
+  return "Evening reminder! 🌙 Still time to save today — don't break your streak!";
+}
+
+function scheduleOneAlarm(hour, minute) {
   const now = new Date();
   const next = new Date();
   next.setHours(hour, minute, 0, 0);
-
-  // If time already passed today, schedule for tomorrow
   if (next <= now) next.setDate(next.getDate() + 1);
-
   const msUntil = next - now;
 
-  reminderTimer = setTimeout(() => {
-    // Tell all open app windows to check-and-notify
+  const t = setTimeout(() => {
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
       if (clients.length > 0) {
-        // App is open — let the app handle it
         clients.forEach(c => c.postMessage({ type: 'CHECK_AND_NOTIFY' }));
       } else {
-        // App is closed — show notification directly from SW
         self.registration.showNotification('💰 SaveLock Reminder', {
-          body: "You haven't saved yet today! Keep your streak alive 🔥",
+          body: getTimeMessage(hour),
           icon: '/assets/icons/icon-192.png',
           badge: '/assets/icons/icon-72.png',
-          tag: 'savelock-reminder',
+          tag: `savelock-reminder-${hour}`,
           renotify: true,
           actions: [
             { action: 'open', title: '💰 Save Now' },
@@ -187,16 +190,25 @@ function scheduleNextReminder(hour, minute) {
         });
       }
     });
-
     // Reschedule for next day
-    scheduleNextReminder(hour, minute);
+    scheduleOneAlarm(hour, minute);
   }, msUntil);
+  reminderTimers.push(t);
 }
 
 self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SCHEDULE_DAILY_REMINDERS') {
+    clearAllTimers();
+    const times = event.data.times || [
+      { hour: 8, minute: 0 },
+      { hour: 14, minute: 0 },
+      { hour: 20, minute: 0 },
+    ];
+    times.forEach(({ hour, minute }) => scheduleOneAlarm(hour, minute));
+  }
+  // Legacy single-time support
   if (event.data && event.data.type === 'SCHEDULE_DAILY_REMINDER') {
-    const { hour, minute } = event.data;
-    scheduleNextReminder(hour, minute);
+    clearAllTimers();
+    scheduleOneAlarm(event.data.hour, event.data.minute);
   }
 });
-

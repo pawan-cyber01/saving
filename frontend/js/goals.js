@@ -200,6 +200,8 @@ const Goals = {
         createdAt: TS.now(),
       });
       showToast('Goal created! 🎯', 'success');
+      // 🪐 Planet pulse effect!
+      if (window.SpaceBG) SpaceBG.pulseGoalPlanet();
       closeModal('goal-modal');
       this.loadGoals(uid);
     } catch(e) {
@@ -219,6 +221,8 @@ const Goals = {
         try {
           await FS.goalDoc(uid, id).update({ savedAmount: TS.increment(amount) });
           showToast(`${formatCurrency(amount)} added to "${name}" 🎉`, 'success');
+          // 🪐 Planet pulse effect!
+          if (window.SpaceBG) SpaceBG.pulseGoalPlanet();
           this.loadGoals(uid);
         } catch(e) { showToast('Failed to update goal', 'error'); }
       }

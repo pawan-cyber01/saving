@@ -33,6 +33,60 @@ const Savings = {
         </div>
       </div>
 
+      <!-- Overspend Alert Banner (hidden by default) -->
+      <div id="sv-overspend-banner" class="hidden rounded-2xl p-4 flex items-start gap-3" style="background:linear-gradient(135deg,rgba(239,68,68,0.18),rgba(239,68,68,0.08));border:1.5px solid rgba(239,68,68,0.5);animation:pulse-red 1.5s infinite">
+        <span style="font-size:1.5rem;flex-shrink:0">🚨</span>
+        <div>
+          <p class="font-outfit font-bold text-sm" style="color:#ef4444">Overspend Alert!</p>
+          <p class="text-xs mt-0.5" id="sv-overspend-msg" style="color:var(--text-secondary)"></p>
+        </div>
+      </div>
+
+      <!-- Visual Savings Jar -->
+      <div class="card text-center" style="background:linear-gradient(135deg,rgba(20,184,166,0.08),rgba(124,58,237,0.06));border-color:rgba(20,184,166,0.2)">
+        <h2 class="section-title mb-1">Monthly Savings Jar</h2>
+        <p class="text-xs mb-4" style="color:var(--text-secondary)" id="sv-jar-label">Loading...</p>
+        <div class="flex justify-center">
+          <div class="relative" style="width:130px;height:180px">
+            <!-- Jar SVG -->
+            <svg viewBox="0 0 130 180" width="130" height="180" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;z-index:2">
+              <!-- Lid -->
+              <rect x="20" y="0" width="90" height="18" rx="6" fill="rgba(124,58,237,0.7)" stroke="rgba(124,58,237,1)" stroke-width="2"/>
+              <rect x="35" y="6" width="60" height="8" rx="4" fill="rgba(167,139,250,0.5)"/>
+              <!-- Jar body outline -->
+              <path d="M15 30 Q10 40 10 55 L10 155 Q10 168 25 170 L105 170 Q120 168 120 155 L120 55 Q120 40 115 30 Z" fill="none" stroke="rgba(124,58,237,0.8)" stroke-width="2.5"/>
+              <!-- Shine -->
+              <path d="M25 45 Q22 80 24 120" stroke="rgba(255,255,255,0.25)" stroke-width="4" stroke-linecap="round" fill="none"/>
+              <!-- Coins emoji at bottom -->
+              <text x="65" y="155" text-anchor="middle" font-size="18" opacity="0.7">💰</text>
+            </svg>
+            <!-- Fill layer (clipped inside jar) -->
+            <svg viewBox="0 0 130 180" width="130" height="180" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;z-index:1">
+              <defs>
+                <clipPath id="jar-clip">
+                  <path d="M16 30 Q11 40 11 55 L11 155 Q11 167 25 169 L105 169 Q119 167 119 155 L119 55 Q119 40 114 30 Z"/>
+                </clipPath>
+              </defs>
+              <!-- Fill rect clipped to jar shape -->
+              <rect id="sv-jar-fill" x="11" y="169" width="108" height="0" clip-path="url(#jar-clip)" fill="url(#jar-gradient)" style="transition:all 1.2s cubic-bezier(0.34,1.56,0.64,1)"/>
+              <defs>
+                <linearGradient id="jar-gradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#14b8a6" stop-opacity="0.9"/>
+                  <stop offset="100%" stop-color="#7c3aed" stop-opacity="0.85"/>
+                </linearGradient>
+              </defs>
+              <!-- Animated wave on top of fill -->
+              <path id="sv-jar-wave" d="" clip-path="url(#jar-clip)" fill="rgba(20,184,166,0.3)" style="transition:all 1.2s cubic-bezier(0.34,1.56,0.64,1)"/>
+            </svg>
+          </div>
+        </div>
+        <!-- Percentage label -->
+        <div class="mt-3">
+          <p class="font-outfit font-bold text-3xl" id="sv-jar-pct" style="color:var(--color-teal)">0%</p>
+          <p class="text-xs mt-1" style="color:var(--text-secondary)">of monthly goal</p>
+        </div>
+      </div>
+
       <!-- Today's Status -->
       <div class="card" id="sv-today-card">
         <div class="flex items-center justify-between mb-4">
@@ -140,6 +194,8 @@ const Savings = {
       this.loadTodayStatus(uid),
       this.loadMonthHeatmap(uid),
       this.loadHistory(uid),
+      this.loadJar(uid),
+      this.loadOverspendAlert(uid),
     ]);
     this.loadDefaultAmount(uid);
   },
@@ -174,6 +230,113 @@ const Savings = {
       if (best) best.textContent = data.longestStreak || 0;
     } catch(e) {}
   },
+
+  async loadJar(uid) {
+    try {
+      // Get monthly savings goal from profile (defaultDailySaving * days in month)
+      const now = new Date();
+      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      const today = getTodayStr();
+      const startOfMonth = today.substring(0, 7) + '-01';
+
+      const [profileSnap, savSnap] = await Promise.all([
+        FS.profileRef(uid).get(),
+        FS.savingsCol(uid).where('date', '>=', startOfMonth).where('date', '<=', today).get()
+      ]);
+
+      const profileData = profileSnap.data() || {};
+      const dailyGoal = profileData.defaultDailySaving || 100;
+      const monthlyGoal = dailyGoal * daysInMonth;
+
+      let totalSaved = 0;
+      savSnap.forEach(d => { totalSaved += d.data().amount || 0; });
+
+      const pct = Math.min(100, Math.round((totalSaved / monthlyGoal) * 100));
+
+      // Update label
+      const label = document.getElementById('sv-jar-label');
+      if (label) label.textContent = `${formatCurrency(totalSaved)} of ${formatCurrency(monthlyGoal)} monthly goal`;
+
+      const pctEl = document.getElementById('sv-jar-pct');
+      if (pctEl) pctEl.textContent = pct + '%';
+
+      // Animate jar fill
+      // Jar interior: y from 31 to 169 = 138px total
+      const jarHeight = 138;
+      const fillHeight = Math.round((pct / 100) * jarHeight);
+      const fillY = 169 - fillHeight;
+
+      setTimeout(() => {
+        const fillEl = document.getElementById('sv-jar-fill');
+        if (fillEl) {
+          fillEl.setAttribute('y', fillY);
+          fillEl.setAttribute('height', fillHeight);
+        }
+        // Wave path on top of fill
+        const waveEl = document.getElementById('sv-jar-wave');
+        if (waveEl && fillHeight > 0) {
+          const wy = fillY;
+          waveEl.setAttribute('d', `M11 ${wy} Q35 ${wy - 6} 65 ${wy} Q95 ${wy + 6} 119 ${wy} L119 ${wy + 8} Q95 ${wy + 2} 65 ${wy + 8} Q35 ${wy + 14} 11 ${wy + 8} Z`);
+        }
+
+        // Change pct color based on fill
+        if (pctEl) {
+          if (pct >= 100) pctEl.style.color = '#fbbf24';
+          else if (pct >= 50) pctEl.style.color = 'var(--color-teal)';
+          else pctEl.style.color = 'var(--color-violet)';
+        }
+      }, 300);
+    } catch(e) { console.error('loadJar:', e); }
+  },
+
+  async loadOverspendAlert(uid) {
+    try {
+      const budgetSnap = await FS.budgetRef(uid).get();
+      const budget = budgetSnap.data() || {};
+      const pocketMoney = budget.monthlyPocketMoney;
+      if (!pocketMoney) return;
+
+      const now = new Date();
+      const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      const today = getTodayStr();
+      const startOfMonth = today.substring(0, 7) + '-01';
+      const dayOfMonth = now.getDate();
+      const remainingDays = daysInMonth - dayOfMonth + 1;
+      const baseDaily = pocketMoney / daysInMonth;
+
+      // Get today's spending
+      const expSnap = await FS.expensesCol(uid)
+        .where('date', '>=', startOfMonth)
+        .where('date', '<=', today)
+        .get();
+
+      let totalSpentMonth = 0;
+      let todaySpent = 0;
+      expSnap.forEach(d => {
+        const amt = d.data().amount || 0;
+        totalSpentMonth += amt;
+        if (d.data().date === today) todaySpent += amt;
+      });
+
+      const banner = document.getElementById('sv-overspend-banner');
+      const msg = document.getElementById('sv-overspend-msg');
+      if (!banner || !msg) return;
+
+      if (todaySpent > baseDaily) {
+        const over = todaySpent - baseDaily;
+        const remainingBudget = pocketMoney - totalSpentMonth;
+        const newDaily = Math.max(0, remainingBudget / Math.max(1, remainingDays - 1));
+        msg.textContent = `You spent ${formatCurrency(todaySpent)} today (${formatCurrency(over)} over limit). Tomorrow's limit adjusted to ${formatCurrency(newDaily)}.`;
+        banner.classList.remove('hidden');
+        // Apply red theme overlay on document body
+        document.body.classList.add('overspend-mode');
+      } else {
+        banner.classList.add('hidden');
+        document.body.classList.remove('overspend-mode');
+      }
+    } catch(e) { console.error('loadOverspendAlert:', e); }
+  },
+
 
   async loadTodayStatus(uid) {
     const today = getTodayStr();
@@ -227,6 +390,9 @@ const Savings = {
       this.showSavedState(amount);
       this.loadMonthHeatmap(uid);
       this.loadStreak(uid);
+      this.loadJar(uid);
+      // ⭐ Star burst effect!
+      if (window.SpaceBG) SpaceBG.burstStars(document.getElementById('sv-today-card'));
     } catch(e) {
       showToast('Failed to save. Try again.', 'error');
     } finally {

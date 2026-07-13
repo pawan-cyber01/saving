@@ -284,6 +284,8 @@ const Expenses = {
       } else {
         await FS.expensesCol(uid).add(data);
         showToast('Expense added!', 'success');
+        // ☄️ Meteor effect for expenses!
+        if (window.SpaceBG) SpaceBG.spawnExpenseMeteor();
       }
       closeModal('expense-modal');
       this.loadExpenses(uid);
