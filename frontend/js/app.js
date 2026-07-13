@@ -108,9 +108,9 @@ const App = {
       }
     }
 
-    // Check admin status
+    // Check admin status (force refresh to ensure latest claims)
     try {
-      const tokenResult = await user.getIdTokenResult();
+      const tokenResult = await user.getIdTokenResult(true);
       if (tokenResult.claims.admin) {
         document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
       }

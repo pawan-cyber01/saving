@@ -74,8 +74,8 @@ const Admin = {
     const user = AUTH.currentUser;
     if (!user) { showToast('Access denied', 'error'); App.navigate('/dashboard'); return; }
 
-    // Verify admin claim
-    const token = await user.getIdTokenResult();
+    // Verify admin claim (force refresh to ensure we get latest claims)
+    const token = await user.getIdTokenResult(true);
     if (!token.claims.admin) {
       showToast('Admin access required', 'error');
       App.navigate('/dashboard');
