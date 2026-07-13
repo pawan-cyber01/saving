@@ -236,12 +236,12 @@ const UPI = {
       return;
     }
 
-    // Use raw app schemes to just open the app (no payment payload).
-    // This avoids redirecting to the Play Store if the app isn't installed.
-    const anyLink  = `upi://`; 
-    const gpayLink = `tez://`;
-    const phonepeLink = `phonepe://`;
-    const paytmLink   = `paytmmp://`;
+    // Use Android MAIN Action intents to act like tapping the app icon.
+    // This forces the apps to open their home page without any payment payload.
+    const anyLink  = `upi://pay`; 
+    const gpayLink = `intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=com.google.android.apps.nbu.paisa.user;end;`;
+    const phonepeLink = `intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=com.phonepe.app;end;`;
+    const paytmLink   = `intent://#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=net.one97.paytm;end;`;
 
     this._amount = amount;
     this._upiId  = upiId;
