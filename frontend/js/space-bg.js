@@ -92,10 +92,8 @@
 
   // --- Init ---
   function init() {
-    const count = Math.min(Math.floor((W * H) / 5000), 280);
+    const count = Math.min(Math.floor((W * H) / 5000), 200); // reduced star count slightly
     stars   = Array.from({ length: count }, mkStar);
-    nebulae = Array.from({ length: 5 }, mkNebula);
-    planets = Array.from({ length: 4 }, mkPlanet);
     meteors = [];
   }
 
@@ -103,89 +101,22 @@
   function draw() {
     ctx.clearRect(0, 0, W, H);
 
-    // Deep space gradient
-    const bg = ctx.createLinearGradient(0, 0, W * 0.5, H);
-    bg.addColorStop(0,   '#04050d');
-    bg.addColorStop(0.4, '#070814');
-    bg.addColorStop(1,   '#050610');
-    ctx.fillStyle = bg;
+    // Pure black background for speed
+    ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, W, H);
-
-    // --- Nebulae / aurora ---
-    for (const n of nebulae) {
-      n.x += n.drift;
-      n.y += n.driftY;
-      if (n.x > W + 400) n.x = -400;
-      if (n.x < -400) n.x = W + 400;
-      if (n.y > H + 400) n.y = -400;
-      if (n.y < -400) n.y = H + 400;
-
-      ctx.save();
-      ctx.translate(n.x, n.y);
-      const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, n.rx);
-      grad.addColorStop(0,   n.color + n.alpha + ')');
-      grad.addColorStop(0.5, n.color + (n.alpha * 0.4) + ')');
-      grad.addColorStop(1,   n.color + '0)');
-      ctx.scale(1, n.ry / n.rx);
-      ctx.beginPath();
-      ctx.arc(0, 0, n.rx, 0, Math.PI * 2);
-      ctx.fillStyle = grad;
-      ctx.fill();
-      ctx.restore();
-    }
 
     // --- Stars ---
     for (const s of stars) {
       const twinkle = Math.sin(tick * s.twinkleSpeed + s.twinklePhase);
       const a = s.alpha + twinkle * 0.25;
-      ctx.save();
       ctx.globalAlpha = Math.max(0, Math.min(1, a));
       ctx.fillStyle = s.color;
-      ctx.shadowColor = s.color;
-      ctx.shadowBlur = s.r > 1 ? 4 : 0;
+      // Removed shadowBlur on stars for massive speed up
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
       ctx.fill();
-      ctx.restore();
     }
-
-    // --- Planets ---
-    for (const p of planets) {
-      const py = p.y + Math.sin(tick * p.floatSpeed + p.floatPhase) * p.floatAmp;
-
-      ctx.save();
-      // Glow
-      const gGrad = ctx.createRadialGradient(p.x, py, 0, p.x, py, p.r * 2.5);
-      gGrad.addColorStop(0, p.glow);
-      gGrad.addColorStop(1, 'transparent');
-      ctx.fillStyle = gGrad;
-      ctx.beginPath();
-      ctx.arc(p.x, py, p.r * 2.5, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Body
-      const bGrad = ctx.createRadialGradient(p.x - p.r * 0.3, py - p.r * 0.3, 0, p.x, py, p.r);
-      bGrad.addColorStop(0, lighten(p.body, 40));
-      bGrad.addColorStop(1, p.body);
-      ctx.beginPath();
-      ctx.arc(p.x, py, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = bGrad;
-      ctx.fill();
-
-      // Ring
-      if (p.hasRing) {
-        ctx.save();
-        ctx.translate(p.x, py);
-        ctx.scale(1, 0.3);
-        ctx.beginPath();
-        ctx.arc(0, 0, p.r * 1.7, 0, Math.PI * 2);
-        ctx.strokeStyle = p.ring;
-        ctx.lineWidth = 3;
-        ctx.stroke();
-        ctx.restore();
-      }
-      ctx.restore();
-    }
+    ctx.globalAlpha = 1;
 
     // --- Meteors ---
     for (let i = meteors.length - 1; i >= 0; i--) {
@@ -207,8 +138,7 @@
       mGrad.addColorStop(1, 'transparent');
       ctx.strokeStyle = mGrad;
       ctx.lineWidth = 1.5;
-      ctx.shadowColor = m.color;
-      ctx.shadowBlur = 6;
+      // Removed shadowBlur on meteors
       ctx.beginPath();
       ctx.moveTo(m.x, m.y);
       ctx.lineTo(m.x - m.vx * 14, m.y - m.vy * 14);
@@ -217,7 +147,7 @@
     }
 
     // Occasional random meteor
-    if (tick % 180 === 0 && Math.random() > 0.4) {
+    if (tick % 240 === 0 && Math.random() > 0.5) {
       meteors.push(spawnMeteor());
     }
 

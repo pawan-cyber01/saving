@@ -45,10 +45,10 @@
   --glass-bg-active:    rgba(255,255,255,0.14);
   --glass-border:       rgba(255,255,255,0.12);
   --glass-border-glow:  rgba(167,139,250,0.35);
-  --glass-blur:         blur(28px) saturate(180%);
-  --glass-blur-heavy:   blur(48px) saturate(200%);
+  --glass-blur:         blur(4px); /* Reduced for speed */
+  --glass-blur-heavy:   blur(8px); /* Reduced for speed */
 
-  --shadow-card:   0 8px 40px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(255,255,255,0.06);
+  --shadow-card:   0 8px 30px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.04);
   --shadow-violet: 0 8px 40px rgba(124,58,237,0.25), 0 0 60px rgba(124,58,237,0.1);
   --shadow-teal:   0 8px 40px rgba(20,184,166,0.2);
   --shadow-glow:   0 0 30px rgba(167,139,250,0.3);
@@ -92,33 +92,7 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.35); border-radius: 4px; }
 
-/* ---------- AURORA OVERLAYS ---------- */
-body::before {
-  content: '';
-  position: fixed;
-  top: -30vh; left: -20vw;
-  width: 80vw; height: 80vh;
-  background: radial-gradient(ellipse, rgba(124,58,237,0.12) 0%, rgba(20,184,166,0.05) 40%, transparent 70%);
-  pointer-events: none; z-index: 0;
-  animation: aurora-drift 18s ease-in-out infinite alternate;
-  filter: blur(60px);
-}
-body::after {
-  content: '';
-  position: fixed;
-  bottom: -20vh; right: -20vw;
-  width: 70vw; height: 60vh;
-  background: radial-gradient(ellipse, rgba(244,114,182,0.10) 0%, rgba(20,184,166,0.07) 40%, transparent 70%);
-  pointer-events: none; z-index: 0;
-  animation: aurora-drift 22s ease-in-out infinite alternate-reverse;
-  filter: blur(80px);
-}
-
-@keyframes aurora-drift {
-  0%   { transform: translate(0, 0) scale(1); opacity: 0.8; }
-  50%  { transform: translate(5vw, 3vh) scale(1.1); opacity: 1; }
-  100% { transform: translate(-3vw, -5vh) scale(0.95); opacity: 0.7; }
-}
+/* ---------- AURORA OVERLAYS (Removed for performance) ---------- */
 
 /* ---------- GRADIENTS ---------- */
 .logo-gradient { background: linear-gradient(135deg, #7c3aed, #14b8a6); }
