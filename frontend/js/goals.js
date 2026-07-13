@@ -92,7 +92,12 @@ const Goals = {
         let etaText = '';
         if (!isComplete && g.targetDate) {
           const daysLeft = Math.ceil((new Date(g.targetDate) - Date.now()) / 86400000);
-          etaText = daysLeft > 0 ? `${daysLeft} days left` : 'Overdue!';
+          if (daysLeft > 0) {
+            const dailyReq = (target - saved) / daysLeft;
+            etaText = `${daysLeft} days left (Save ${formatCurrency(dailyReq)}/day)`;
+          } else {
+            etaText = 'Overdue!';
+          }
         }
 
         return `

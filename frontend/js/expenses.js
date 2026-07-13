@@ -142,7 +142,7 @@ const Expenses = {
     if (labelEl) labelEl.textContent = periodLabel;
 
     try {
-      let query = FS.expensesCol(uid).where('date', '>=', startDate).where('date', '<=', today).orderBy('date', 'desc').orderBy('timestamp', 'desc');
+      let query = FS.expensesCol(uid).where('date', '>=', startDate).where('date', '<=', today).orderBy('date', 'desc');
       const snap = await query.get();
 
       let items = snap.docs.map(d => ({ id: d.id, ...d.data() }));

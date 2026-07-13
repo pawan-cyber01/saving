@@ -1,7 +1,7 @@
 // sw.js — Service Worker for SaveLock PWA
 // Provides offline support, caching, and background sync
 
-const CACHE_NAME = 'savelock-v1.1.0';
+const CACHE_NAME = 'savelock-v1.2.0';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -25,7 +25,7 @@ const STATIC_ASSETS = [
   '/js/profile.js',
   '/js/admin.js',
   '/js/app.js',
-  '/js/space-bg.js',
+  '/js/dynamic-bg.js',
   '/manifest.json',
 ];
 

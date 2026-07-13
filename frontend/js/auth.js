@@ -4,15 +4,11 @@ const Auth = {
   renderLogin() {
     document.getElementById('auth-page-outlet').innerHTML = `
       <div class="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
-        <!-- Background glows -->
-        <div class="absolute top-[-20%] left-[-20%] w-[500px] h-[500px] rounded-full opacity-20 blur-3xl" style="background:radial-gradient(circle,#7c3aed,transparent)"></div>
-        <div class="absolute bottom-[-20%] right-[-20%] w-[400px] h-[400px] rounded-full opacity-15 blur-3xl" style="background:radial-gradient(circle,#14b8a6,transparent)"></div>
-
         <div class="w-full max-w-md relative z-10">
           <!-- Logo -->
           <div class="text-center mb-8 animate-fade-in">
-            <div class="w-16 h-16 mx-auto mb-4 rounded-3xl logo-gradient flex items-center justify-center shadow-2xl shadow-violet-500/30">
-              <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H7l5-8v4h4l-5 8z" fill="white"/></svg>
+            <div class="w-16 h-16 mx-auto mb-4 rounded-3xl bg-white/10 flex items-center justify-center shadow-xl shadow-black/20">
+              <img src="./assets/icons/logo.png" alt="Logo" class="w-10 h-10 object-contain">
             </div>
             <h1 class="text-3xl font-outfit font-bold gradient-text">SaveLock</h1>
             <p class="text-sm mt-1" style="color:var(--text-secondary)">Your premium savings companion</p>
