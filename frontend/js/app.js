@@ -184,7 +184,12 @@ document.addEventListener('DOMContentLoaded', () => {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('[SW] Registered:', reg.scope))
+        .then(reg => {
+          window._swRegistration = reg;
+          console.log('[SW] Registered:', reg.scope);
+          // Re-register daily reminder alarm with SW
+          Notifications.init();
+        })
         .catch(err => console.warn('[SW] Registration failed:', err));
     });
   }

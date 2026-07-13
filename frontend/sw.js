@@ -151,10 +151,52 @@ self.addEventListener('notificationclick', event => {
   );
 });
 
-// ─── Background Sync (scaffolded) ────────────────────────────────────────────
-self.addEventListener('sync', event => {
-  if (event.tag === 'sync-savings') {
-    // Future: sync offline savings data when back online
-    console.log('[SW] Background sync: savings');
+// ─── Daily Reminder Alarm ────────────────────────────────────────────────────
+let reminderTimer = null;
+
+function scheduleNextReminder(hour, minute) {
+  if (reminderTimer) clearTimeout(reminderTimer);
+
+  const now = new Date();
+  const next = new Date();
+  next.setHours(hour, minute, 0, 0);
+
+  // If time already passed today, schedule for tomorrow
+  if (next <= now) next.setDate(next.getDate() + 1);
+
+  const msUntil = next - now;
+
+  reminderTimer = setTimeout(() => {
+    // Tell all open app windows to check-and-notify
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
+      if (clients.length > 0) {
+        // App is open — let the app handle it
+        clients.forEach(c => c.postMessage({ type: 'CHECK_AND_NOTIFY' }));
+      } else {
+        // App is closed — show notification directly from SW
+        self.registration.showNotification('💰 SaveLock Reminder', {
+          body: "You haven't saved yet today! Keep your streak alive 🔥",
+          icon: '/assets/icons/icon-192.png',
+          badge: '/assets/icons/icon-72.png',
+          tag: 'savelock-reminder',
+          renotify: true,
+          actions: [
+            { action: 'open', title: '💰 Save Now' },
+            { action: 'dismiss', title: 'Later' }
+          ]
+        });
+      }
+    });
+
+    // Reschedule for next day
+    scheduleNextReminder(hour, minute);
+  }, msUntil);
+}
+
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SCHEDULE_DAILY_REMINDER') {
+    const { hour, minute } = event.data;
+    scheduleNextReminder(hour, minute);
   }
 });
+

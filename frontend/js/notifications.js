@@ -1,43 +1,79 @@
-// notifications.js — Browser notifications and FCM scaffolding
+// notifications.js — Browser notifications and daily reminders
 
 const Notifications = {
-  permission: 'default',
+  permission: (typeof Notification !== 'undefined' ? Notification.permission : 'default'),
 
   async requestPermission() {
-    if (!('Notification' in window)) return;
+    if (!('Notification' in window)) {
+      showToast('Your browser does not support notifications', 'warning');
+      return false;
+    }
     try {
       this.permission = await Notification.requestPermission();
       if (this.permission === 'granted') {
         showToast('Notifications enabled! 🔔', 'success');
-        this.scheduleDailyReminder();
+        this.scheduleFromSW();
+        return true;
       } else {
         showToast('Notifications blocked. Enable in browser settings.', 'warning');
+        return false;
       }
-    } catch(e) {}
+    } catch(e) { return false; }
   },
 
+  // Show a notification (uses SW registration so it works when minimised)
   show(title, body, icon = '/assets/icons/icon-192.png') {
     if (this.permission !== 'granted') return;
     try {
-      const notif = new Notification(title, { body, icon, badge: '/assets/icons/icon-192.png', tag: 'savelock-' + Date.now() });
-      notif.onclick = () => { window.focus(); notif.close(); };
-    } catch(e) {}
+      const reg = window._swRegistration;
+      if (reg) {
+        reg.showNotification(title, {
+          body,
+          icon,
+          badge: '/assets/icons/icon-192.png',
+          tag: 'savelock-reminder',
+          renotify: true,
+          actions: [
+            { action: 'open', title: '💰 Save Now' },
+            { action: 'dismiss', title: 'Later' }
+          ]
+        });
+      } else {
+        new Notification(title, { body, icon });
+      }
+    } catch(e) {
+      try { new Notification(title, { body, icon }); } catch(e2) {}
+    }
   },
 
-  scheduleDailyReminder() {
-    // Check if daily reminder time (8 PM) has passed today
-    const now = new Date();
-    const reminderHour = 20; // 8 PM
-    let nextReminder = new Date(now);
-    nextReminder.setHours(reminderHour, 0, 0, 0);
-    if (now >= nextReminder) nextReminder.setDate(nextReminder.getDate() + 1);
-    const msUntil = nextReminder - now;
-    setTimeout(() => {
-      this.checkAndNotify();
-      setInterval(() => this.checkAndNotify(), 86400000); // every 24h
-    }, msUntil);
+  // Post to SW to set up alarm loop
+  scheduleFromSW() {
+    const hour   = parseInt(localStorage.getItem('reminderHour')   ?? '20');
+    const minute = parseInt(localStorage.getItem('reminderMinute') ?? '0');
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'SCHEDULE_DAILY_REMINDER',
+        hour,
+        minute
+      });
+    }
   },
 
+  // Called when user picks a time
+  async setReminderTime(hour, minute) {
+    localStorage.setItem('reminderHour', hour);
+    localStorage.setItem('reminderMinute', minute);
+    if (this.permission !== 'granted') {
+      const granted = await this.requestPermission();
+      if (!granted) return;
+    }
+    this.scheduleFromSW();
+    const hh = String(hour).padStart(2, '0');
+    const mm = String(minute).padStart(2, '0');
+    showToast(`Daily reminder set for ${hh}:${mm} 🔔`, 'success');
+  },
+
+  // Fires at reminder time — only notifies if user hasn't saved today
   async checkAndNotify() {
     const uid = getUID();
     if (!uid) return;
@@ -45,9 +81,26 @@ const Notifications = {
     try {
       const snap = await FS.savingDoc(uid, today).get();
       if (!snap.exists) {
-        this.show('💰 SaveLock Reminder', "Don't forget to save today! Keep your streak alive 🔥");
+        this.show(
+          '💰 SaveLock Reminder',
+          "You haven't saved yet today! Keep your streak alive 🔥"
+        );
       }
     } catch(e) {}
+  },
+
+  // Restore the SW alarm every time the app opens
+  init() {
+    this.permission = (typeof Notification !== 'undefined' ? Notification.permission : 'default');
+    if (this.permission === 'granted') {
+      navigator.serviceWorker?.ready.then(() => this.scheduleFromSW());
+    }
+    // Listen for SW check requests
+    navigator.serviceWorker?.addEventListener('message', event => {
+      if (event.data && event.data.type === 'CHECK_AND_NOTIFY') {
+        this.checkAndNotify();
+      }
+    });
   },
 
   notifyBudgetExceeded(spent, budget) {
