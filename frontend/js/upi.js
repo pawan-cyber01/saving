@@ -236,12 +236,12 @@ const UPI = {
       return;
     }
 
-    // Use Android intents to just open the app (no payment payload) 
-    // so the user can scan the QR screenshot from their gallery.
+    // Use raw app schemes to just open the app (no payment payload).
+    // This avoids redirecting to the Play Store if the app isn't installed.
     const anyLink  = `upi://`; 
-    const gpayLink = `intent://#Intent;package=com.google.android.apps.nbu.paisa.user;end;`;
-    const phonepeLink = `intent://#Intent;package=com.phonepe.app;end;`;
-    const paytmLink   = `intent://#Intent;package=net.one97.paytm;end;`;
+    const gpayLink = `tez://`;
+    const phonepeLink = `phonepe://`;
+    const paytmLink   = `paytmmp://`;
 
     this._amount = amount;
     this._upiId  = upiId;
