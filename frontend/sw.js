@@ -1,11 +1,11 @@
 // sw.js — Service Worker for SaveLock PWA
 // Provides offline support, caching, and background sync
 
-const CACHE_NAME = 'savelock-v1.0.0';
+const CACHE_NAME = 'savelock-v1.1.0';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/css/app.css',
+  '/css/space.css',
   '/js/firebase.js',
   '/js/utils.js',
   '/js/theme.js',
@@ -15,6 +15,7 @@ const STATIC_ASSETS = [
   '/js/dashboard.js',
   '/js/savings.js',
   '/js/expenses.js',
+  '/js/income.js',
   '/js/budget.js',
   '/js/goals.js',
   '/js/locked.js',
@@ -24,6 +25,7 @@ const STATIC_ASSETS = [
   '/js/profile.js',
   '/js/admin.js',
   '/js/app.js',
+  '/js/space-bg.js',
   '/manifest.json',
 ];
 
@@ -80,48 +82,35 @@ self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET, non-HTTP, and Firebase/CDN requests
+  // Skip non-GET, non-HTTP, and Firebase/CDN API requests
   if (request.method !== 'GET') return;
   if (!url.protocol.startsWith('http')) return;
   if (url.hostname.includes('firestore') || url.hostname.includes('googleapis') || url.hostname.includes('gstatic')) return;
-  if (url.hostname.includes('cdn.jsdelivr') || url.hostname.includes('cdnjs') || url.hostname.includes('fonts.google')) {
-    // Network-first for CDN assets (they may update)
-    event.respondWith(
-      fetch(request)
-        .then(response => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
-          }
-          return response;
-        })
-        .catch(() => caches.match(request))
-    );
-    return;
-  }
 
-  // Network-first for local static assets to ensure latest updates
+  // Stale-While-Revalidate Strategy for instant PWA loading
   event.respondWith(
-    fetch(request)
-      .then(response => {
-        if (response.ok) {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+    caches.match(request).then(cachedResponse => {
+      // Background fetch to update the cache
+      const fetchPromise = fetch(request).then(networkResponse => {
+        if (networkResponse && networkResponse.ok) {
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(request, networkResponse.clone());
+          });
         }
-        return response;
-      })
-      .catch(() => {
-        return caches.match(request).then(cached => {
-          if (cached) return cached;
-          
-          // Return offline page for navigation requests if network fails and no cache
-          if (request.mode === 'navigate') {
-            return new Response(OFFLINE_HTML, {
-              headers: { 'Content-Type': 'text/html' },
-            });
-          }
-        });
-      })
+        return networkResponse;
+      }).catch(err => {
+        // If network fails, and we have no cache, return offline fallback for navigation
+        if (request.mode === 'navigate' && !cachedResponse) {
+          return new Response(OFFLINE_HTML, {
+            headers: { 'Content-Type': 'text/html' },
+          });
+        }
+        throw err;
+      });
+
+      // Return cached immediately if available, otherwise wait for network
+      return cachedResponse || fetchPromise;
+    })
   );
 });
 
